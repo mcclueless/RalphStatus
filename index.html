@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ralph Status</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+        .status-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            transition: transform 0.3s ease;
+        }
+        .status-card:hover {
+            transform: translateY(-5px);
+        }
+        .status-indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        .status-up {
+            background: #28a745;
+            box-shadow: 0 0 20px rgba(40, 167, 69, 0.5);
+        }
+        .status-down {
+            background: #dc3545;
+            box-shadow: 0 0 20px rgba(220, 53, 69, 0.5);
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        .metric-label {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            text-align: center;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <h1 class="text-center mb-5">🐢 Ralph Status</h1>
+
+                <!-- Main Status Card -->
+                <div class="card status-card p-4 mb-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h3 class="mb-1">Status</h3>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="status-indicator status-up" id="mainStatus"></div>
+                                <span id="statusText">Up and Running</span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <div class="metric-value" id="uptime">0h 0m</div>
+                            <div class="metric-label">Uptime</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Metrics Grid -->
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="card status-card p-3 text-center">
+                            <div class="metric-value" id="sessions">0</div>
+                            <div class="metric-label">Sessions Today</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="card status-card p-3 text-center">
+                            <div class="metric-value" id="messages">0</div>
+                            <div class="metric-label">Messages</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="card status-card p-3 text-center">
+                            <div class="metric-value" id="tokens">0</div>
+                            <div class="metric-label">Tokens Used</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="card status-card p-3 text-center">
+                            <div class="metric-value" id="tasks">0</div>
+                            <div class="metric-label">Tasks Completed</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Last Activity -->
+                <div class="card status-card p-3 mt-4">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="metric-label">Last Activity</div>
+                            <div id="lastActivity">Loading...</div>
+                        </div>
+                        <div class="col-6 text-end">
+                            <div class="metric-label">Last Updated</div>
+                            <div id="lastUpdated">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        Auto-refreshing every 30 seconds • Mock data for testing
+    </div>
+
+    <script>
+        // Mock data - simulates Ralph's activity
+        let startTime = Date.now();
+        let sessionStart = new Date();
+
+        function formatNumber(num) {
+            return new Intl.NumberFormat().format(num);
+        }
+
+        function formatTime(date) {
+            return date.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+
+        function updateUptime() {
+            const elapsed = Date.now() - startTime;
+            const hours = Math.floor(elapsed / 3600000);
+            const minutes = Math.floor((elapsed % 3600000) / 60000);
+            const seconds = Math.floor((elapsed % 60000) / 1000);
+            document.getElementById('uptime').textContent =
+                `${hours}h ${minutes}m ${seconds}s`;
+        }
+
+        function generateMockData() {
+            // Simulate varying metrics
+            const sessions = Math.floor(Math.random() * 20) + 50;
+            const messages = Math.floor(Math.random() * 500) + 1000;
+            const tokens = Math.floor(Math.random() * 100000) + 500000;
+            const tasks = Math.floor(Math.random() * 30) + 10;
+
+            return { sessions, messages, tokens, tasks };
+        }
+
+        function updateDisplay() {
+            const data = generateMockData();
+
+            document.getElementById('sessions').textContent = formatNumber(data.sessions);
+            document.getElementById('messages').textContent = formatNumber(data.messages);
+            document.getElementById('tokens').textContent = formatNumber(data.tokens);
+            document.getElementById('tasks').textContent = formatNumber(data.tasks);
+
+            document.getElementById('lastActivity').textContent =
+                'Reading emails, checking calendar, Twitter monitoring';
+
+            document.getElementById('lastUpdated').textContent = formatTime(new Date());
+
+            updateUptime();
+        }
+
+        // Initialize
+        updateDisplay();
+
+        // Auto-refresh every 30 seconds
+        setInterval(updateDisplay, 30000);
+    </script>
+</body>
+</html>
