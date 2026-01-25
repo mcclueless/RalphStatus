@@ -10,6 +10,7 @@
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             min-height: 100vh;
             color: #fff;
+            overflow-x: hidden;
         }
         .status-card {
             background: rgba(255, 255, 255, 0.1);
@@ -36,8 +37,20 @@
             box-shadow: 0 0 20px rgba(220, 53, 69, 0.5);
         }
         @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.1); }
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(40, 167, 69, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(40, 167, 69, 0.6), 0 0 60px rgba(40, 167, 69, 0.3); }
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
         }
         .metric-value {
             font-size: 2rem;
@@ -58,13 +71,71 @@
             font-size: 0.8rem;
             color: rgba(255, 255, 255, 0.5);
         }
+        .ralph-avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            animation: float 4s ease-in-out infinite, glow 3s ease-in-out infinite;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        .ralph-avatar:hover {
+            transform: scale(1.1);
+        }
+        .sparkle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: gold;
+            border-radius: 50%;
+            animation: twinkle 1s ease-in-out infinite;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .happy-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(40, 167, 69, 0.95);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 50px;
+            font-size: 1.5rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 1000;
+        }
+        .happy-message.show {
+            opacity: 1;
+            animation: float 2s ease-in-out;
+        }
+        .emoji-celebration {
+            position: fixed;
+            pointer-events: none;
+            font-size: 2rem;
+            opacity: 0;
+            z-index: 999;
+        }
     </style>
 </head>
 <body>
-    <div class="container py-5">
+    <div class="container py-4">
         <div class="row justify-content-center">
-            <div class="col-md-8">
-                <h1 class="text-center mb-5">🐢 Ralph Status</h1>
+            <div class="col-md-8 text-center">
+                <!-- Ralph's Photo -->
+                <div style="position: relative; display: inline-block; margin-bottom: 20px;">
+                    <img src="ralph-turtle.jpg" alt="Ralph" class="ralph-avatar" id="ralphAvatar">
+                    <div class="sparkle" style="top: 10%; left: 20%; animation-delay: 0s;"></div>
+                    <div class="sparkle" style="top: 30%; right: 10%; animation-delay: 0.3s;"></div>
+                    <div class="sparkle" style="bottom: 20%; left: 10%; animation-delay: 0.6s;"></div>
+                    <div class="sparkle" style="bottom: 10%; right: 25%; animation-delay: 0.9s;"></div>
+                </div>
+
+                <h1 class="mb-4">🐢 Ralph Status</h1>
 
                 <!-- Main Status Card -->
                 <div class="card status-card p-4 mb-4">
@@ -128,14 +199,16 @@
         </div>
     </div>
 
+    <!-- Happy Message Popup -->
+    <div class="happy-message" id="happyMessage">🐢 Thanks for visiting!</div>
+
     <div class="footer">
-        Auto-refreshing every 30 seconds • Mock data for testing
+        Auto-refreshing every 30 seconds • Click Ralph for a smile!
     </div>
 
     <script>
         // Mock data - simulates Ralph's activity
         let startTime = Date.now();
-        let sessionStart = new Date();
 
         function formatNumber(num) {
             return new Intl.NumberFormat().format(num);
@@ -159,35 +232,66 @@
         }
 
         function generateMockData() {
-            // Simulate varying metrics
             const sessions = Math.floor(Math.random() * 20) + 50;
             const messages = Math.floor(Math.random() * 500) + 1000;
             const tokens = Math.floor(Math.random() * 100000) + 500000;
             const tasks = Math.floor(Math.random() * 30) + 10;
-
             return { sessions, messages, tokens, tasks };
         }
 
         function updateDisplay() {
             const data = generateMockData();
-
             document.getElementById('sessions').textContent = formatNumber(data.sessions);
             document.getElementById('messages').textContent = formatNumber(data.messages);
             document.getElementById('tokens').textContent = formatNumber(data.tokens);
             document.getElementById('tasks').textContent = formatNumber(data.tasks);
-
             document.getElementById('lastActivity').textContent =
                 'Reading emails, checking calendar, Twitter monitoring';
-
             document.getElementById('lastUpdated').textContent = formatTime(new Date());
-
             updateUptime();
         }
 
+        // Happy interaction on click
+        const happyMessages = [
+            "🐢 Thanks for visiting!",
+            "😊 Glad you're here!",
+            "🚀 Let's get things done!",
+            "💪 Working hard for you!",
+            "🎯 On it!",
+            "�Shell yeah!",
+            "🦞 Clawdbot is happy!",
+            "✨ Ready to help!"
+        ];
+
+        function showHappyMessage() {
+            const msg = happyMessages[Math.floor(Math.random() * happyMessages.length)];
+            const el = document.getElementById('happyMessage');
+            el.textContent = msg;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 2000);
+        }
+
+        function createCelebration() {
+            const emojis = ['🎉', '✨', '🌟', '💫', '🦞', '🐢', '👍', '😊'];
+            for (let i = 0; i < 8; i++) {
+                const emoji = document.createElement('div');
+                emoji.className = 'emoji-celebration';
+                emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                emoji.style.left = Math.random() * window.innerWidth + 'px';
+                emoji.style.top = Math.random() * window.innerHeight + 'px';
+                emoji.style.animation = `float ${1 + Math.random()}s ease-out forwards`;
+                document.body.appendChild(emoji);
+                setTimeout(() => emoji.remove(), 2000);
+            }
+        }
+
+        document.getElementById('ralphAvatar').addEventListener('click', () => {
+            showHappyMessage();
+            createCelebration();
+        });
+
         // Initialize
         updateDisplay();
-
-        // Auto-refresh every 30 seconds
         setInterval(updateDisplay, 30000);
     </script>
 </body>
